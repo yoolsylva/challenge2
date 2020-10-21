@@ -40,22 +40,28 @@ function Trie() {
 
 // inserts a word into the trie.
 // time complexity: O(k), k = word length
-Trie.prototype.insert = function(word) {
-  if(!this.result.length) this.result.push(word[0]);
-  
-  var node = this.root; // we start at the root 😬
-  
+Trie.prototype.insert = function(word) {  
+  let node = this.root; // we start at the root 😬
+
   // for every character in the word
-  for(var i = 0; i < word.length; i++) {
+  for(let i = 0; i < word.length; i++) {
     // check to see if character node exists in children.
     if (!node.children[word[i]]) {
       // if it doesn't exist, we then create it.
       node.children[word[i]] = new TrieNode(word[i]);
+
+      if(!node.parent) {
+        this.result.push({ word: word[i], isFullWord: false });
+      }
+
+      if(node.parent && Object.keys(node.parent.children).length > 1 && i < word.length-1) {
+        this.result.push({ word: word.substring(0, i+1), isFullWord: false });
+      }
       
       // we also assign the parent to the child node.
       node.children[word[i]].parent = node;
     }
-    
+
     // proceed to the next depth in the trie.
     node = node.children[word[i]];
 
@@ -65,6 +71,12 @@ Trie.prototype.insert = function(word) {
     if (i == word.length-1) {
       // if it is, we set the end flag to true.
       node.end = true;
+
+      if(node.count > 1) {
+        const index = this.result.findIndex(it => it.word === word);
+        if(index > -1) this.result[index] = { word, isFullWord: true, count: node.count };
+        else this.result.push({ word, isFullWord: true, count: node.count });
+      }
     }
   }
 };
